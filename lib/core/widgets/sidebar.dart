@@ -13,8 +13,11 @@ class Sidebar extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSizes.defaultPadding),
         children: [
-          const FlutterLogo(size: 80),
-          const SizedBox(height: AppSizes.defaultPadding),
+          Image.asset(
+                'assets/brikto_logo.jpeg',
+                height: 180,
+              ),
+          // const SizedBox(height: AppSizes.defaultPadding),
           SidebarItem(icon: Icons.dashboard, label: 'Dashboard', route: '/dashboard'),
           SidebarItem(icon: Icons.person, label: 'Developers', route: '/developers'),
           // SidebarItem(icon: Icons.location_city, label: 'Developer Request', route: '/requests'),

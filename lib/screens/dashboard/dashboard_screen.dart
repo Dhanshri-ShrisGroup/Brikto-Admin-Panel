@@ -97,13 +97,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(height: AppSizes.defaultPadding * 2),
 
                         // Recent Activity Table Placeholder
-                        const Text(
-                          'Recent Actions',
-                          style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary),
-                        ),
+                        // const Text(
+                        //   'Recent Actions',
+                        //   style: TextStyle(
+                        //       fontSize: 20,
+                        //       fontWeight: FontWeight.bold,
+                        //       color: AppColors.textPrimary),
+                        // ),
                         const SizedBox(height: AppSizes.defaultPadding),
                         // RecentActivityTable(),
                       ],

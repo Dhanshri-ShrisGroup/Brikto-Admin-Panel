@@ -1,3 +1,4 @@
+import 'package:brikto_admin_panel/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import '../../services/supabase_service.dart';
 
@@ -61,87 +62,126 @@ if (res.isNotEmpty) {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: Center(
-        child: SingleChildScrollView(
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: AppColors.background,
+    body: Center(
+      child: SingleChildScrollView(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420),
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ✅ Brikto Logo
+              Image.asset(
+                'assets/brikto_logo.jpeg',
+                height: 180,
+              ),
+
+              const SizedBox(height: 10),
+
+              const Text(
+                "Brikto Admin Panel",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // App title/logo
-                const FlutterLogo(size: 80),
-                const SizedBox(height: 16),
-                const Text(
-                  "Brikto Admin Panel",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                "Sign in to continue",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Email
+              TextField(
+                controller: email,
+                keyboardType: TextInputType.emailAddress,
+                decoration: InputDecoration(
+                  labelText: "Email",
+                  prefixIcon: const Icon(Icons.email_outlined),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                const SizedBox(height: 32),
+              ),
 
-                // Email field
-                TextField(
-                  controller: email,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: "Email",
-                    border: OutlineInputBorder(),
+              const SizedBox(height: 18),
+
+              // Password
+              TextField(
+                controller: password,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: "Password",
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                const SizedBox(height: 16),
+              ),
 
-                // Password field
-                TextField(
-                  controller: password,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: "Password",
-                    border: OutlineInputBorder(),
-                  ),
+              const SizedBox(height: 28),
+
+              // Login button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+  onPressed: loading ? null : login,
+  style: ElevatedButton.styleFrom(
+    backgroundColor: AppColors.primary,// construction orange
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
+
+                  child: loading
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          "Login",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            
+                  color: Color.fromARGB(255, 255, 255, 255),
+                          ),
+                        ),
                 ),
-
-                // // Forgot password
-                // Align(
-                //   alignment: Alignment.centerRight,
-                //   child: TextButton(
-                //     onPressed: forgotPassword,
-                //     child: const Text("Forgot Password?"),
-                //   ),
-                // ),
-                // const SizedBox(height: 16),
-
-                // Login button
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: loading ? null : login,
-                    child: loading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text("Login", style: TextStyle(fontSize: 16)),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }
