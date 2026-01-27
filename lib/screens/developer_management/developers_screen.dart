@@ -23,8 +23,24 @@ class _DeveloperManagementScreenState extends State<DeveloperManagementScreen> {
   bool loading = true;
   List developers = [];
 
-  final List<String> statusOptions = ['Active', 'Inactive', 'Expired', 'Suspended'];
+  final List<String> statusOptions = [
+  ...{
+    'Approved',
+    'Active',
+    'Inactive',
+    'Expired',
+    'Suspended',
+    'Rejected',
+    'Blocked',
+  }
+];
+
   final List<String> planOptions = ['Monthly', 'Yearly', 'Custom'];
+
+List<Map<String, dynamic>> approvedDevelopers = [];
+List<Map<String, dynamic>> developerRequests = [];
+
+
 
   @override
   void initState() {
@@ -32,21 +48,35 @@ class _DeveloperManagementScreenState extends State<DeveloperManagementScreen> {
     fetchDevelopers();
   }
 
-  Future<void> fetchDevelopers() async {
-    setState(() => loading = true);
-    try {
-      final supabase = Supabase.instance.client;
-      developers = await supabase.from('view_developers').select();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error fetching developers: $e')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => loading = false);
-    }
+Future<void> fetchDevelopers() async {
+  setState(() => loading = true);
+  try {
+    final supabase = Supabase.instance.client;
+    final res = await supabase.from('owner').select().order('id', ascending: false);
+
+    final all = List<Map<String, dynamic>>.from(res);
+
+    // ✅ APPROVED TAB
+    approvedDevelopers = all.where((d) =>
+      d['verified'] == true &&
+      d['is_approved'] == true
+    ).toList();
+
+    // ✅ REQUEST TAB
+    developerRequests = all.where((d) =>
+      d['verified'] != true ||
+      d['is_approved'] != true
+    ).toList();
+  } catch (e) {
+    debugPrint('fetchDevelopers error: $e');
+    approvedDevelopers = [];
+    developerRequests = [];
+  } finally {
+    setState(() => loading = false);
   }
+}
+
+
 
   String generatePassword(int length) {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#\$%^&*';
@@ -65,26 +95,41 @@ class _DeveloperManagementScreenState extends State<DeveloperManagementScreen> {
     }
   }
 
-  void showDeveloperForm({Map? developer}) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final nameController = TextEditingController(text: developer?['developer_name'] ?? '');
-        final companyController = TextEditingController(text: developer?['company_name'] ?? '');
-        final mobileController = TextEditingController(text: developer?['mobile'] ?? '');
-        final emailController = TextEditingController(text: developer?['email'] ?? '');
-        final passwordController = TextEditingController(
-            text: developer == null ? generatePassword(10) : null);
+ void showDeveloperForm({Map? developer}) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      final nameController = TextEditingController(
+        text: developer?['full_name'] ?? '',
+      );
+      final companyController = TextEditingController(
+        text: developer?['company_name'] ?? '',
+      );
+      final mobileController = TextEditingController(
+        text: developer?['phone'] ?? '',
+      );
+      final emailController = TextEditingController(
+        text: developer?['email'] ?? '',
+      );
 
-        String selectedPlan = developer?['subscription_plan'] ?? 'Monthly';
-        String selectedStatus = 'Active';
+      final passwordController = TextEditingController(
+        text: developer == null ? generatePassword(10) : '',
+      );
 
-        DateTime? startDate = developer?['subscription_start_date'] != null
-            ? DateTime.parse(developer!['subscription_start_date'])
-            : null;
-        DateTime? expiryDate = developer?['subscription_expiry_date'] != null
-            ? DateTime.parse(developer!['subscription_expiry_date'])
-            : null;
+      String selectedPlan =
+          developer?['subscription_plan'] ?? 'Monthly';
+
+      String selectedStatus =
+          developer?['status'] ?? 'Active';
+
+      DateTime? startDate = developer?['subscription_start_date'] != null
+          ? DateTime.parse(developer!['subscription_start_date'])
+          : null;
+
+      DateTime? expiryDate = developer?['subscription_expiry_date'] != null
+          ? DateTime.parse(developer!['subscription_expiry_date'])
+          : null;
+
 
         return StatefulBuilder(builder: (context, setStateSB) {
           return AlertDialog(
@@ -174,16 +219,20 @@ class _DeveloperManagementScreenState extends State<DeveloperManagementScreen> {
                   try {
                     final supabase = Supabase.instance.client;
 
-                    Map<String, dynamic> data = {
-                      'full_name': nameController.text,
-                      'company_name': companyController.text,
-                      'phone': mobileController.text,
-                      'email': emailController.text,
-                      'subscription_plan': selectedPlan,
-                      'subscription_start_date': startDate?.toIso8601String(),
-                      'subscription_expiry_date': expiryDate?.toIso8601String(),
-                      'status': selectedStatus,
-                    };
+                   Map<String, dynamic> data = {
+  'full_name': nameController.text.trim(),
+  'company_name': companyController.text.trim(),
+  'phone': mobileController.text.trim(),
+  'email': emailController.text.trim(),
+  'subscription_plan': selectedPlan,
+  'subscription_start_date':
+      startDate?.toIso8601String().split('T')[0],
+  'subscription_expiry_date':
+      expiryDate?.toIso8601String().split('T')[0],
+  'status': selectedStatus,
+  'updated_at': DateTime.now().toIso8601String(),
+};
+
 
                     if (developer == null) {
                       // // Insert new developer with hashed password
@@ -215,79 +264,225 @@ class _DeveloperManagementScreenState extends State<DeveloperManagementScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: AppColors.background,
+//       appBar: const Navbar(title: 'Developer Management'),
+//       body: Row(
+//         children: [
+//           const Sidebar(),
+//           Expanded(
+//             child: loading
+//                 ? const LoadingIndicator()
+//                 : Padding(
+//                     padding: const EdgeInsets.all(AppSizes.defaultPadding),
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         Row(
+//                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                           children: [
+//                             const Text('Developers',
+//                                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+//                             ElevatedButton.icon(
+//                               onPressed: () => showDeveloperForm(),
+//                               icon: const Icon(Icons.add),
+//                               label: const Text('Add Developer'),
+//                             ),
+//                           ],
+//                         ),
+//                         const SizedBox(height: AppSizes.defaultPadding),
+//                         Expanded(
+//                           child: ListView.builder(
+//                             itemCount: developers.length,
+//                             itemBuilder: (context, index) {
+//                               final dev = developers[index];
+//                               return Card(
+//                                 margin: const EdgeInsets.symmetric(vertical: 8),
+//                                 child: ListTile(
+//                                   title: Text(dev['developer_name']),
+//                                   subtitle: Text(
+//                                       '${dev['company_name'] ?? ''} • ${dev['email']} • ${dev['status']}'),
+//                                   trailing: Wrap(
+//                                     spacing: 8,
+//                                     children: [
+//                                       // IconButton(
+//                                       //   icon: Icon(
+//                                       //     dev['status'] == 'active'
+//                                       //         ? Icons.toggle_on
+//                                       //         : Icons.toggle_off,
+//                                       //     color: AppColors.primary,
+//                                       //     size: 30,
+//                                       //   ),
+//                                       //   onPressed: () => toggleDeveloperStatus(dev),
+//                                       // ),
+//                                       IconButton(
+//                                         icon: const Icon(Icons.edit, color: Colors.orange),
+//                                         onPressed: () => showDeveloperForm(developer: dev),
+//                                       ),
+//                                       IconButton(
+//                                         icon: const Icon(Icons.location_city, color: Colors.green),
+//                                         onPressed: () => viewSites(dev),
+//                                       ),
+//                                     ],
+//                                   ),
+//                                 ),
+//                               );
+//                             },
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
+@override
+Widget build(BuildContext context) {
+  return DefaultTabController(
+    length: 2,
+    child: Scaffold(
       backgroundColor: AppColors.background,
       appBar: const Navbar(title: 'Developer Management'),
       body: Row(
         children: [
           const Sidebar(),
           Expanded(
-            child: loading
-                ? const LoadingIndicator()
-                : Padding(
-                    padding: const EdgeInsets.all(AppSizes.defaultPadding),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Developers',
-                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                            ElevatedButton.icon(
-                              onPressed: () => showDeveloperForm(),
-                              icon: const Icon(Icons.add),
-                              label: const Text('Add Developer'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSizes.defaultPadding),
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: developers.length,
-                            itemBuilder: (context, index) {
-                              final dev = developers[index];
-                              return Card(
-                                margin: const EdgeInsets.symmetric(vertical: 8),
-                                child: ListTile(
-                                  title: Text(dev['developer_name']),
-                                  subtitle: Text(
-                                      '${dev['company_name'] ?? ''} • ${dev['email']} • ${dev['status']}'),
-                                  trailing: Wrap(
-                                    spacing: 8,
-                                    children: [
-                                      // IconButton(
-                                      //   icon: Icon(
-                                      //     dev['status'] == 'active'
-                                      //         ? Icons.toggle_on
-                                      //         : Icons.toggle_off,
-                                      //     color: AppColors.primary,
-                                      //     size: 30,
-                                      //   ),
-                                      //   onPressed: () => toggleDeveloperStatus(dev),
-                                      // ),
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, color: Colors.orange),
-                                        onPressed: () => showDeveloperForm(developer: dev),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.location_city, color: Colors.green),
-                                        onPressed: () => viewSites(dev),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+            child: Column(
+              children: [
+                const TabBar(
+                  tabs: [
+                    Tab(text: 'Approved Developers'),
+                    Tab(text: 'Requests'),
+                  ],
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      _buildApprovedDevelopers(),
+                      _buildDeveloperRequests(),
+                    ],
                   ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
-    );
+    ),
+  );
+}
+
+Widget _buildApprovedDevelopers() {
+  if (loading) return const LoadingIndicator();
+  if (approvedDevelopers.isEmpty) {
+    return const Center(child: Text('No approved developers'));
   }
+
+  return ListView.builder(
+    padding: const EdgeInsets.all(AppSizes.defaultPadding),
+    itemCount: approvedDevelopers.length,
+    itemBuilder: (_, i) {
+      final dev = approvedDevelopers[i];
+
+      return Card(
+        child: ListTile(
+          title: Text(dev['full_name']),
+          subtitle: Text(
+            '${dev['email']} • ${dev['status']}',
+          ),
+          trailing: Wrap(
+            spacing: 8,
+            children: [
+              // ✅ EDIT (restored)
+              IconButton(
+                tooltip: 'Edit Developer',
+                icon: const Icon(Icons.edit, color: Colors.orange),
+                onPressed: () => showDeveloperForm(developer: dev),
+              ),
+
+              // ✅ VIEW SITES
+              IconButton(
+                tooltip: 'View Sites',
+                icon: const Icon(Icons.location_city, color: Colors.green),
+                onPressed: () => viewSites(dev),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+
+Widget _buildDeveloperRequests() {
+  if (loading) return const LoadingIndicator();
+  if (developerRequests.isEmpty) {
+    return const Center(child: Text('No developer requests'));
+  }
+
+  return ListView.builder(
+    padding: const EdgeInsets.all(AppSizes.defaultPadding),
+    itemCount: developerRequests.length,
+    itemBuilder: (_, i) {
+      final dev = developerRequests[i];
+      return Card(
+        child: ListTile(
+          title: Text(dev['full_name']),
+          subtitle: Text(dev['email']),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: 'Approve',
+                icon: const Icon(Icons.check_circle, color: Colors.green),
+                onPressed: () => approveDeveloper(dev['id']),
+              ),
+              IconButton(
+                tooltip: 'Reject',
+                icon: const Icon(Icons.cancel, color: Colors.red),
+                onPressed: () => rejectDeveloper(dev['id']),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+
+Future<void> approveDeveloper(int id) async {
+  final supabase = Supabase.instance.client;
+
+  await supabase.from('owner').update({
+    'verified': true,
+    'is_approved': true,
+    'status': 'Approved',
+    'updated_at': DateTime.now().toIso8601String(),
+  }).eq('id', id);
+
+  fetchDevelopers();
+}
+
+
+
+Future<void> rejectDeveloper(int id) async {
+  final supabase = Supabase.instance.client;
+
+  await supabase.from('owner').update({
+    'verified': false,
+    'is_approved': false,
+    'status': 'Rejected',
+    'updated_at': DateTime.now().toIso8601String(),
+  }).eq('id', id);
+
+  fetchDevelopers();
+}
+
 }

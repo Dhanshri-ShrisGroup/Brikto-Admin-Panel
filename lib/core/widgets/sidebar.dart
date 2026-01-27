@@ -17,10 +17,10 @@ class Sidebar extends StatelessWidget {
           const SizedBox(height: AppSizes.defaultPadding),
           SidebarItem(icon: Icons.dashboard, label: 'Dashboard', route: '/dashboard'),
           SidebarItem(icon: Icons.person, label: 'Developers', route: '/developers'),
-          SidebarItem(icon: Icons.location_city, label: 'Developer Request', route: '/requests'),
+          // SidebarItem(icon: Icons.location_city, label: 'Developer Request', route: '/requests'),
           // SidebarItem(icon: Icons.settings_applications, label: 'Module Control', route: '/module-control'),
           SidebarItem(icon: Icons.subscriptions, label: 'Subscription ', route: '/subscriptions'),
-          SidebarItem(icon: Icons.settings, label: 'Settings', route: '/settings'),
+          // SidebarItem(icon: Icons.settings, label: 'Settings', route: '/settings'),
         ],
       ),
     );
