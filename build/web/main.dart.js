@@ -41371,7 +41371,7 @@ A.abW(this.a,"/login",s,s)},
 $S:0}
 A.P1.prototype={
 K(a){var s=null
-return A.hO(s,A.aDc(A.b([A.aCM("assets/brikto_logo.jpeg",180),new A.v7(B.GQ,"Dashboard","/dashboard",s),new A.v7(B.GZ,"Developers","/developers",s),new A.v7(B.H0,"Subscription ","/subscriptions",s)],t.p),B.G0,s,!1),B.B,B.k,s,s,s,s,s,s,s,s,250)}}
+return A.hO(s,A.aDc(A.b([A.aCM("assets/Brikto_logo.jpeg",180),new A.v7(B.GQ,"Dashboard","/dashboard",s),new A.v7(B.GZ,"Developers","/developers",s),new A.v7(B.H0,"Subscription ","/subscriptions",s)],t.p),B.G0,s,!1),B.B,B.k,s,s,s,s,s,s,s,s,250)}}
 A.v7.prototype={
 K(a){var s=null
 return A.Aw(A.tX(this.c,B.fP,s,s),new A.ahk(this,a),s,A.aZ(this.d,s,s,s,s,s,s,s,s),s)}}
@@ -41872,7 +41872,7 @@ break
 case 5:return A.y(null,r)
 case 1:return A.x(p.at(-1),r)}})
 return A.z($async$BN,r)},
-K(a){var s=this,r=null,q=A.kH(18),p=A.b([new A.bl(0,B.N,A.av(20,B.l.D()>>>16&255,B.l.D()>>>8&255,B.l.D()&255),B.N4,20)],t.F),o=A.aCM("assets/brikto_logo.jpeg",180),n=A.aZ("Sign in to continue",r,r,r,r,A.ki(r,r,B.ez,r,r,r,r,r,r,r,r,14,r,r,r,r,r,!0,r,r,r,r,r,r,r,r),r,r,r),m=A.f4(!0,B.aw,!1,r,!0,B.q,r,A.fB(),s.d,r,r,r,r,r,2,A.A5(r,new A.hr(4,A.kH(12),B.fF),r,r,r,r,r,r,!0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,"Email",!0,!0,r,B.H6,r,r,r,r,r,r,r,r,r,r,r),B.D,!0,r,!0,r,!1,r,B.ay,r,r,r,B.A9,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.aV,r,r,B.at,B.am,r,r,r,r,r,r,r,!0,B.Z,r,B.aZ,r,r,r,r),l=A.f4(!0,B.aw,!1,r,!0,B.q,r,A.fB(),s.e,r,r,r,r,r,2,A.A5(r,new A.hr(4,A.kH(12),B.fF),r,r,r,r,r,r,!0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,"Password",!0,!0,r,B.H5,r,r,r,r,r,r,r,r,r,r,r),B.D,!0,r,!0,r,!1,r,B.ay,r,r,r,r,r,r,r,1,r,r,!0,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.aV,r,r,B.at,B.am,r,r,r,r,r,r,r,!0,B.Z,r,B.aZ,r,r,r,r),k=s.f?r:s.gart(),j=A.aCo(r,r,B.fP,r,r,r,r,r,r,r,r,r,r,r,new A.d8(A.kH(12),B.p),r,r,r,r,r)
+K(a){var s=this,r=null,q=A.kH(18),p=A.b([new A.bl(0,B.N,A.av(20,B.l.D()>>>16&255,B.l.D()>>>8&255,B.l.D()&255),B.N4,20)],t.F),o=A.aCM("assets/Brikto_logo.jpeg",180),n=A.aZ("Sign in to continue",r,r,r,r,A.ki(r,r,B.ez,r,r,r,r,r,r,r,r,14,r,r,r,r,r,!0,r,r,r,r,r,r,r,r),r,r,r),m=A.f4(!0,B.aw,!1,r,!0,B.q,r,A.fB(),s.d,r,r,r,r,r,2,A.A5(r,new A.hr(4,A.kH(12),B.fF),r,r,r,r,r,r,!0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,"Email",!0,!0,r,B.H6,r,r,r,r,r,r,r,r,r,r,r),B.D,!0,r,!0,r,!1,r,B.ay,r,r,r,B.A9,r,r,r,1,r,r,!1,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.aV,r,r,B.at,B.am,r,r,r,r,r,r,r,!0,B.Z,r,B.aZ,r,r,r,r),l=A.f4(!0,B.aw,!1,r,!0,B.q,r,A.fB(),s.e,r,r,r,r,r,2,A.A5(r,new A.hr(4,A.kH(12),B.fF),r,r,r,r,r,r,!0,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,r,"Password",!0,!0,r,B.H5,r,r,r,r,r,r,r,r,r,r,r),B.D,!0,r,!0,r,!1,r,B.ay,r,r,r,r,r,r,r,1,r,r,!0,"\u2022",r,r,r,r,r,!1,r,r,!1,r,!0,r,B.aV,r,r,B.at,B.am,r,r,r,r,r,r,r,!0,B.Z,r,B.aZ,r,r,r,r),k=s.f?r:s.gart(),j=A.aCo(r,r,B.fP,r,r,r,r,r,r,r,r,r,r,r,new A.d8(A.kH(12),B.p),r,r,r,r,r)
 return A.nE(r,B.ex,A.dS(A.CD(A.hO(r,A.d3(A.b([o,B.Rj,B.X4,B.Rp,n,B.Rm,m,B.Rk,l,B.Rl,A.cs(A.kX(s.f?B.Ri:B.X_,k,j),48,1/0)],t.p),B.G,B.z,B.aR),B.B,r,B.Bt,new A.dy(B.k,r,r,q,p,r,B.aN),r,r,r,B.Gb,r,r,r),r,B.D,r,r,B.al),r,r))}}
 A.aq4.prototype={
 $0(){return this.a.f=!0},

@@ -86,7 +86,7 @@ Widget build(BuildContext context) {
             children: [
               // ✅ Brikto Logo
               Image.asset(
-                'assets/brikto_logo.jpeg',
+                'assets/Brikto_logo.jpeg',
                 height: 180,
               ),
 
