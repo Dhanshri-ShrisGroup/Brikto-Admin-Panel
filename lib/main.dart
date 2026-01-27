@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/dashboard': (context) => const DashboardScreen(),
         '/developers': (context) => const DeveloperManagementScreen(),
-        // '/sites': (context) => const SitesScreen(),
+        '/sites': (context) => const SitesScreen(),
         '/requests': (context) =>  OwnerRequestsPage(),
 
         '/subscriptions': (context) => SubscriptionManagementPage(),
