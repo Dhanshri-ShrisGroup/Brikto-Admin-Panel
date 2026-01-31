@@ -403,12 +403,16 @@ class _SubscriptionManagementPageState
   // ---------------- UI ----------------
   @override
   Widget build(BuildContext context) {
+  final mobile = MediaQuery.of(context).size.width < 900;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const Navbar(title: "Subscription Management"),
+      
+      drawer: mobile ? const Sidebar() : null,
+      appBar:  Navbar(title: "Subscription Management", showMenu: mobile,),
       body: Row(
         children: [
-          const Sidebar(),
+          if (!mobile) const Sidebar(),
           Expanded(
             child: Padding(
               padding:

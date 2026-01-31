@@ -56,21 +56,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+bool isMobile(BuildContext context) {
+  return MediaQuery.of(context).size.width < 900;
+}
+
   @override
   Widget build(BuildContext context) {
+    final mobile = isMobile(context);
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const Navbar(title: 'Brikto Admin Panel'),
+      drawer: mobile ? const Sidebar() : null,
+      appBar: Navbar(title: 'Brikto Admin Panel',showMenu: mobile,),
       body: Row(
         children: [
-          const Sidebar(),
+          if (!mobile) const Sidebar(),
+          // const Sidebar(),
           Expanded(
             child: loading
                 ? const LoadingIndicator()
                 : SingleChildScrollView(
                     padding: const EdgeInsets.all(AppSizes.defaultPadding),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Text(
                           'Dashboard',
@@ -83,16 +90,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const SizedBox(height: AppSizes.defaultPadding),
 
                         // Metrics Cards
-                        Wrap(
-                          spacing: AppSizes.defaultPadding,
-                          runSpacing: AppSizes.defaultPadding,
-                          children: [
-                            StatCard(title: 'Total Developers', value: '$totalDevelopers'),
-                            StatCard(title: 'Active Developers', value: '$activeDevelopers'),
-                            StatCard(title: 'Expired Developers', value: '$expiredDevelopers'),
-                            StatCard(title: 'Total Sites', value: '$totalSites'),
-                          ],
-                        ),
+                        Center(
+  child: ConstrainedBox(
+    constraints: const BoxConstraints(maxWidth: 1200),
+    child: Wrap(
+      alignment: WrapAlignment.center,
+      runAlignment: WrapAlignment.center,
+      spacing: AppSizes.defaultPadding,
+      runSpacing: AppSizes.defaultPadding,
+      children: [
+        StatCard(title: 'Total Developers', value: '$totalDevelopers'),
+        StatCard(title: 'Active Developers', value: '$activeDevelopers'),
+        StatCard(title: 'Expired Developers', value: '$expiredDevelopers'),
+        StatCard(title: 'Total Sites', value: '$totalSites'),
+      ],
+    ),
+  ),
+),
+
 
                         const SizedBox(height: AppSizes.defaultPadding * 2),
 

@@ -343,14 +343,17 @@ Future<void> fetchDevelopers() async {
 
 @override
 Widget build(BuildContext context) {
+  final mobile = MediaQuery.of(context).size.width < 900;
+
   return DefaultTabController(
     length: 2,
     child: Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const Navbar(title: 'Developer Management'),
+      drawer: mobile ? const Sidebar() : null,
+      appBar: Navbar(title: 'Developer Management',showMenu: mobile,),
       body: Row(
         children: [
-          const Sidebar(),
+          if (!mobile) const Sidebar(),
           Expanded(
             child: Column(
               children: [

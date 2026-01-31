@@ -4,4 +4,6 @@ class AppSizes {
   static const double iconSize = 24.0;
   static const double sidebarWidth = 250.0;
   static const double appBarHeight = 56.0;
+  static const double sidebarExpandedWidth = 240;
+  static const double sidebarCollapsedWidth = 70;
 }

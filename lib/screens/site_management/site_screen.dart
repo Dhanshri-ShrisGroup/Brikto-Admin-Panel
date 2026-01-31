@@ -33,14 +33,18 @@ List<Map<String, dynamic>> siteRequests = [];
 
 @override
 Widget build(BuildContext context) {
+  final mobile = MediaQuery.of(context).size.width < 900;
+
   return DefaultTabController(
     length: 2,
     child: Scaffold(
       backgroundColor: AppColors.background,
-      appBar: const Navbar(title: 'Site Management'),
+      drawer: mobile ? const Sidebar() : null,
+
+      appBar:  Navbar(title: 'Site Management',showMenu: mobile,),
       body: Row(
         children: [
-          const Sidebar(),
+           if (!mobile) const Sidebar(),
           Expanded(
             child: Column(
               children: [
