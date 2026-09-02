@@ -7,6 +7,7 @@ import '../../core/widgets/stat_card.dart';
 import '../../core/widgets/loader.dart';
 import '../../core/widgets/navbar.dart';
 import '../../core/widgets/sidebar.dart';
+import '../../core/utils/responsive.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,9 +20,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool loading = true;
 
   int totalDevelopers = 0;
-  int activeDevelopers = 0;
-  int expiredDevelopers = 0;
   int totalSites = 0;
+  int proActiveSites = 0;
 
   @override
   void initState() {
@@ -35,16 +35,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final supabase = Supabase.instance.client;
 
-      // Fetch all metrics from view
-      final List metrics = await supabase.from(ApiConstants.dashboardMetrics).select();
+      final responses = await Future.wait([
+        supabase.from('owner').select('id'),
+        supabase.from('sites').select('id'),
+        supabase.from('sites').select('id').eq('subscription_type', 'PRO'),
+      ]);
 
-      if (metrics.isNotEmpty) {
-        final data = metrics.first;
-        totalDevelopers = data['total_developers'] ?? 0;
-        activeDevelopers = data['active_developers'] ?? 0;
-        expiredDevelopers = data['expired_developers'] ?? 0;
-        totalSites = data['total_sites'] ?? 0;
-      }
+      totalDevelopers = (responses[0] as List).length;
+      totalSites = (responses[1] as List).length;
+      proActiveSites = (responses[2] as List).length;
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -56,9 +55,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-bool isMobile(BuildContext context) {
-  return MediaQuery.of(context).size.width < 900;
-}
 
   @override
   Widget build(BuildContext context) {
@@ -100,9 +96,8 @@ bool isMobile(BuildContext context) {
       runSpacing: AppSizes.defaultPadding,
       children: [
         StatCard(title: 'Total Developers', value: '$totalDevelopers'),
-        StatCard(title: 'Active Developers', value: '$activeDevelopers'),
-        StatCard(title: 'Expired Developers', value: '$expiredDevelopers'),
         StatCard(title: 'Total Sites', value: '$totalSites'),
+        StatCard(title: 'PRO Active Sites', value: '$proActiveSites'),
       ],
     ),
   ),

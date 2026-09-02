@@ -10,6 +10,7 @@ import '../../core/constants/sizes.dart';
 import '../../core/widgets/loader.dart';
 import '../../core/widgets/navbar.dart';
 import '../../core/widgets/sidebar.dart';
+import '../../core/utils/responsive.dart';
 import 'dart:math';
 
 class DeveloperManagementScreen extends StatefulWidget {
@@ -103,7 +104,7 @@ Future<void> fetchDevelopers() async {
         text: developer?['full_name'] ?? '',
       );
       final companyController = TextEditingController(
-        text: developer?['company_name'] ?? '',
+        text: developer?['construction_name'] ?? '',
       );
       final mobileController = TextEditingController(
         text: developer?['phone'] ?? '',
@@ -117,17 +118,21 @@ Future<void> fetchDevelopers() async {
       );
 
       String selectedPlan =
-          developer?['subscription_plan'] ?? 'Monthly';
+          developer?['subscription_plan']?.toString() ?? 'Monthly';
+      if (!planOptions.contains(selectedPlan)) selectedPlan = 'Monthly';
 
       String selectedStatus =
-          developer?['status'] ?? 'Active';
+          developer?['status']?.toString() ?? 'Active';
+      if (!statusOptions.contains(selectedStatus)) selectedStatus = 'Active';
 
-      DateTime? startDate = developer?['subscription_start_date'] != null
-          ? DateTime.parse(developer!['subscription_start_date'])
+      final startRaw = developer?['subscription_start_date'];
+      DateTime? startDate = (startRaw != null && startRaw.toString().isNotEmpty) 
+          ? DateTime.tryParse(startRaw.toString()) 
           : null;
 
-      DateTime? expiryDate = developer?['subscription_expiry_date'] != null
-          ? DateTime.parse(developer!['subscription_expiry_date'])
+      final expiryRaw = developer?['subscription_expiry_date'];
+      DateTime? expiryDate = (expiryRaw != null && expiryRaw.toString().isNotEmpty) 
+          ? DateTime.tryParse(expiryRaw.toString()) 
           : null;
 
 
@@ -138,7 +143,7 @@ Future<void> fetchDevelopers() async {
               child: Column(
                 children: [
                   TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Developer Name')),
-                  TextField(controller: companyController, decoration: const InputDecoration(labelText: 'Company Name')),
+                  TextField(controller: companyController, decoration: const InputDecoration(labelText: 'Construction Name')),
                   TextField(controller: mobileController, decoration: const InputDecoration(labelText: 'Mobile')),
                   TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
                   if (developer == null)
@@ -219,19 +224,19 @@ Future<void> fetchDevelopers() async {
                   try {
                     final supabase = Supabase.instance.client;
 
-                   Map<String, dynamic> data = {
-  'full_name': nameController.text.trim(),
-  'company_name': companyController.text.trim(),
-  'phone': mobileController.text.trim(),
-  'email': emailController.text.trim(),
-  'subscription_plan': selectedPlan,
-  'subscription_start_date':
-      startDate?.toIso8601String().split('T')[0],
-  'subscription_expiry_date':
-      expiryDate?.toIso8601String().split('T')[0],
-  'status': selectedStatus,
-  'updated_at': DateTime.now().toIso8601String(),
-};
+                    Map<String, dynamic> data = {
+                      'full_name': nameController.text.trim(),
+                      'construction_name': companyController.text.trim(),
+                      'phone': mobileController.text.trim(),
+                      'email': emailController.text.trim(),
+                      'subscription_plan': selectedPlan,
+                      'subscription_start_date':
+                          startDate != null ? startDate!.toIso8601String().split('T')[0] : null,
+                      'subscription_expiry_date':
+                          expiryDate != null ? expiryDate!.toIso8601String().split('T')[0] : null,
+                      'status': selectedStatus,
+                      'updated_at': DateTime.now().toIso8601String(),
+                    };
 
 
                     if (developer == null) {
@@ -343,7 +348,7 @@ Future<void> fetchDevelopers() async {
 
 @override
 Widget build(BuildContext context) {
-  final mobile = MediaQuery.of(context).size.width < 900;
+  final mobile = Responsive.isMobile(context);
 
   return DefaultTabController(
     length: 2,
@@ -351,6 +356,12 @@ Widget build(BuildContext context) {
       backgroundColor: AppColors.background,
       drawer: mobile ? const Sidebar() : null,
       appBar: Navbar(title: 'Developer Management',showMenu: mobile,),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => showDeveloperForm(),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Add Developer', style: TextStyle(color: Colors.white)),
+      ),
       body: Row(
         children: [
           if (!mobile) const Sidebar(),
@@ -358,6 +369,9 @@ Widget build(BuildContext context) {
             child: Column(
               children: [
                 const TabBar(
+                  labelColor: AppColors.primary,
+                  unselectedLabelColor: AppColors.textSecondary,
+                  indicatorColor: AppColors.primary,
                   tabs: [
                     Tab(text: 'Approved Developers'),
                     Tab(text: 'Requests'),
@@ -380,84 +394,148 @@ Widget build(BuildContext context) {
   );
 }
 
-Widget _buildApprovedDevelopers() {
-  if (loading) return const LoadingIndicator();
-  if (approvedDevelopers.isEmpty) {
-    return const Center(child: Text('No approved developers'));
+  int _getCrossAxisCount(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    if (width >= 1200) return 4;
+    if (width >= 900) return 3;
+    if (width >= 600) return 2;
+    return 1;
   }
 
-  return ListView.builder(
-    padding: const EdgeInsets.all(AppSizes.defaultPadding),
-    itemCount: approvedDevelopers.length,
-    itemBuilder: (_, i) {
-      final dev = approvedDevelopers[i];
+  Widget _buildApprovedDevelopers() {
+    if (loading) return const LoadingIndicator();
+    if (approvedDevelopers.isEmpty) {
+      return const Center(child: Text('No approved developers'));
+    }
 
-      return Card(
-        child: ListTile(
-          title: Text(dev['full_name']),
-          subtitle: Text(
-            '${dev['email']} • ${dev['status']}',
+    return GridView.builder(
+      padding: const EdgeInsets.all(AppSizes.defaultPadding),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _getCrossAxisCount(context),
+        mainAxisSpacing: AppSizes.defaultPadding,
+        crossAxisSpacing: AppSizes.defaultPadding,
+        mainAxisExtent: 200,
+      ),
+      itemCount: approvedDevelopers.length,
+      itemBuilder: (_, i) {
+        final dev = approvedDevelopers[i];
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.14),
+                      child: const Icon(Icons.person, color: AppColors.primary),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        dev['full_name'] ?? 'Unnamed',
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text('Construction: ${dev['construction_name'] ?? '-'}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text('Email: ${dev['email'] ?? '-'}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text('Phone: ${dev['phone'] ?? '-'}'),
+                Text('Status: ${dev['status'] ?? '-'}'),
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      tooltip: 'Edit Developer',
+                      icon: const Icon(Icons.edit, color: Colors.orange),
+                      onPressed: () => showDeveloperForm(developer: dev),
+                    ),
+                    IconButton(
+                      tooltip: 'View Sites',
+                      icon: const Icon(Icons.location_city, color: Colors.green),
+                      onPressed: () => viewSites(dev),
+                    ),
+                  ],
+                )
+              ],
+            ),
           ),
-          trailing: Wrap(
-            spacing: 8,
-            children: [
-              // ✅ EDIT (restored)
-              IconButton(
-                tooltip: 'Edit Developer',
-                icon: const Icon(Icons.edit, color: Colors.orange),
-                onPressed: () => showDeveloperForm(developer: dev),
-              ),
-
-              // ✅ VIEW SITES
-              IconButton(
-                tooltip: 'View Sites',
-                icon: const Icon(Icons.location_city, color: Colors.green),
-                onPressed: () => viewSites(dev),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
-
-
-Widget _buildDeveloperRequests() {
-  if (loading) return const LoadingIndicator();
-  if (developerRequests.isEmpty) {
-    return const Center(child: Text('No developer requests'));
+        );
+      },
+    );
   }
 
-  return ListView.builder(
-    padding: const EdgeInsets.all(AppSizes.defaultPadding),
-    itemCount: developerRequests.length,
-    itemBuilder: (_, i) {
-      final dev = developerRequests[i];
-      return Card(
-        child: ListTile(
-          title: Text(dev['full_name']),
-          subtitle: Text(dev['email']),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                tooltip: 'Approve',
-                icon: const Icon(Icons.check_circle, color: Colors.green),
-                onPressed: () => approveDeveloper(dev['id']),
-              ),
-              IconButton(
-                tooltip: 'Reject',
-                icon: const Icon(Icons.cancel, color: Colors.red),
-                onPressed: () => rejectDeveloper(dev['id']),
-              ),
-            ],
+  Widget _buildDeveloperRequests() {
+    if (loading) return const LoadingIndicator();
+    if (developerRequests.isEmpty) {
+      return const Center(child: Text('No developer requests'));
+    }
+
+    return GridView.builder(
+      padding: const EdgeInsets.all(AppSizes.defaultPadding),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: _getCrossAxisCount(context),
+        mainAxisSpacing: AppSizes.defaultPadding,
+        crossAxisSpacing: AppSizes.defaultPadding,
+        mainAxisExtent: 200,
+      ),
+      itemCount: developerRequests.length,
+      itemBuilder: (_, i) {
+        final dev = developerRequests[i];
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: AppColors.warning.withValues(alpha: 0.14),
+                      child: const Icon(Icons.person_add, color: AppColors.warning),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        dev['full_name'] ?? 'Unnamed',
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text('Construction: ${dev['construction_name'] ?? '-'}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text('Email: ${dev['email'] ?? '-'}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text('Phone: ${dev['phone'] ?? '-'}'),
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      tooltip: 'Approve',
+                      icon: const Icon(Icons.check_circle, color: Colors.green),
+                      onPressed: () => approveDeveloper(dev['id']),
+                    ),
+                    IconButton(
+                      tooltip: 'Reject',
+                      icon: const Icon(Icons.cancel, color: Colors.red),
+                      onPressed: () => rejectDeveloper(dev['id']),
+                    ),
+                  ],
+                )
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
 
 Future<void> approveDeveloper(int id) async {

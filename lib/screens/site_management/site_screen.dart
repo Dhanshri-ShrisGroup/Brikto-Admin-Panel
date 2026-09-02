@@ -5,6 +5,7 @@ import '../../core/constants/sizes.dart';
 import '../../core/widgets/loader.dart';
 import '../../core/widgets/navbar.dart';
 import '../../core/widgets/sidebar.dart';
+import '../../core/utils/responsive.dart';
 
 class SitesScreen extends StatefulWidget {
   const SitesScreen({super.key});
@@ -31,9 +32,46 @@ class _SitesScreenState extends State<SitesScreen> {
 List<Map<String, dynamic>> approvedSites = [];
 List<Map<String, dynamic>> siteRequests = [];
 
+Set<String> _selectedFilters = {'All'};
+List<String> _typeOptions = ['FREE', 'PRO', 'TRIAL'];
+
+List<Map<String, dynamic>> get _filteredApprovedSites {
+  if (_selectedFilters.contains('All')) return approvedSites;
+  return approvedSites.where((s) {
+    final type = (s['subscription_type']?.toString() ?? 'FREE').toUpperCase();
+    return _selectedFilters.contains(type);
+  }).toList();
+}
+
+void _toggleFilter(String filter) {
+  setState(() {
+    if (filter == 'All') {
+      _selectedFilters = {'All'};
+    } else {
+      _selectedFilters.remove('All');
+      if (_selectedFilters.contains(filter)) {
+        _selectedFilters.remove(filter);
+      } else {
+        _selectedFilters.add(filter);
+      }
+      if (_selectedFilters.isEmpty) {
+        _selectedFilters.add('All');
+      }
+    }
+  });
+}
+
+  int _getCrossAxisCount(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
+    if (width >= 1200) return 4;
+    if (width >= 900) return 3;
+    if (width >= 600) return 2;
+    return 1;
+  }
+
 @override
 Widget build(BuildContext context) {
-  final mobile = MediaQuery.of(context).size.width < 900;
+  final mobile = Responsive.isMobile(context);
 
   return DefaultTabController(
     length: 2,
@@ -135,36 +173,100 @@ void didChangeDependencies() {
   //   setState(() => loading = true);
 
 Widget _buildApprovedSites() {
-  if (loading) return const LoadingIndicator();
-  if (approvedSites.isEmpty) {
-    return const Center(child: Text('No approved sites'));
-  }
-
-  return ListView.builder(
-    padding: const EdgeInsets.all(AppSizes.defaultPadding),
-    itemCount: approvedSites.length,
-    itemBuilder: (_, i) {
-      final s = approvedSites[i];
-      return Card(
-        child: ListTile(
-          title: Text(s['name']),
-          subtitle: Text(s['location'] ?? ''),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () => showSiteForm(site: s),
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () => deleteSite(s['id']),
-              ),
-            ],
-          ),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.all(AppSizes.defaultPadding),
+        child: Wrap(
+          spacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            const Text('Filter: ', style: TextStyle(fontWeight: FontWeight.bold)),
+            ...['All', ..._typeOptions].map((filter) {
+              final isSelected = _selectedFilters.contains(filter);
+              return FilterChip(
+                label: Text(filter),
+                selected: isSelected,
+                onSelected: (_) => _toggleFilter(filter),
+                selectedColor: AppColors.primary.withValues(alpha: 0.2),
+                checkmarkColor: AppColors.primary,
+              );
+            }),
+          ],
         ),
-      );
-    },
+      ),
+      Expanded(
+        child: loading
+            ? const LoadingIndicator()
+            : _filteredApprovedSites.isEmpty
+                ? const Center(child: Text('No approved sites'))
+                : GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSizes.defaultPadding),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: _getCrossAxisCount(context),
+                      mainAxisSpacing: AppSizes.defaultPadding,
+                      crossAxisSpacing: AppSizes.defaultPadding,
+                      mainAxisExtent: 180,
+                    ),
+                    itemCount: _filteredApprovedSites.length,
+                    itemBuilder: (_, i) {
+                      final s = _filteredApprovedSites[i];
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: AppColors.primary.withValues(alpha: 0.14),
+                                    child: const Icon(Icons.apartment, color: AppColors.primary),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      s['name'] ?? 'Unnamed',
+                                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text('Location: ${s['location'] ?? '-'}', maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text('Type: ${(s['subscription_type']?.toString() ?? 'FREE').toUpperCase()}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                              const Spacer(),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  TextButton.icon(
+                                    icon: const Icon(Icons.credit_card, size: 16),
+                                    label: const Text('Check Sub'),
+                                    onPressed: () => showSubscriptionInfo(s),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    tooltip: 'Edit Site',
+                                    icon: const Icon(Icons.edit, color: Colors.orange),
+                                    onPressed: () => showSiteForm(site: s),
+                                  ),
+                                  IconButton(
+                                    tooltip: 'Delete Site',
+                                    icon: const Icon(Icons.delete, color: AppColors.danger),
+                                    onPressed: () => deleteSite(s['id']),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+      ),
+    ],
   );
 }
 
@@ -175,30 +277,64 @@ Widget _buildSiteRequests() {
     return const Center(child: Text('No site requests'));
   }
 
-  return ListView.builder(
+  return GridView.builder(
     padding: const EdgeInsets.all(AppSizes.defaultPadding),
+    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: _getCrossAxisCount(context),
+      mainAxisSpacing: AppSizes.defaultPadding,
+      crossAxisSpacing: AppSizes.defaultPadding,
+      mainAxisExtent: 180,
+    ),
     itemCount: siteRequests.length,
     itemBuilder: (_, i) {
       final s = siteRequests[i];
       return Card(
-        child: ListTile(
-          title: Text(s['name']),
-          subtitle: Text(
-            '${s['location']} • ${s['project_type'] ?? ''}',
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              IconButton(
-                tooltip: 'Approve',
-                icon: const Icon(Icons.check_circle, color: Colors.green),
-                onPressed: () => approveSite(s['id']),
+              Row(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: AppColors.warning.withValues(alpha: 0.14),
+                    child: const Icon(Icons.apartment, color: AppColors.warning),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      s['name'] ?? 'Unnamed',
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-              IconButton(
-                tooltip: 'Reject',
-                icon: const Icon(Icons.cancel, color: Colors.red),
-                onPressed: () => rejectSite(s['id']),
-              ),
+              const SizedBox(height: 12),
+              Text('Location: ${s['location'] ?? '-'}', maxLines: 1, overflow: TextOverflow.ellipsis),
+              Text('Type: ${s['project_type'] ?? '-'}', maxLines: 1, overflow: TextOverflow.ellipsis),
+              const Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    icon: const Icon(Icons.credit_card, size: 16),
+                    label: const Text('Check Sub'),
+                    onPressed: () => showSubscriptionInfo(s),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    tooltip: 'Approve',
+                    icon: const Icon(Icons.check_circle, color: Colors.green),
+                    onPressed: () => approveSite(s['id']),
+                  ),
+                  IconButton(
+                    tooltip: 'Reject',
+                    icon: const Icon(Icons.cancel, color: Colors.red),
+                    onPressed: () => rejectSite(s['id']),
+                  ),
+                ],
+              )
             ],
           ),
         ),
@@ -229,6 +365,42 @@ Future<void> rejectSite(int siteId) async {
     debugPrint('rejectSite error: $e');
   }
 }
+
+  void showSubscriptionInfo(Map<String, dynamic> site) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('${site['name']} - Subscription Details', style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.workspace_premium, color: AppColors.primary),
+              title: Text('Plan Type: ${(site['subscription_type']?.toString() ?? 'FREE').toUpperCase()}', style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const Divider(),
+            if (site['trial_start_date'] != null) ...[
+              Text('Trial Starts: ${site['trial_start_date'].toString().split('T')[0]}'),
+              Text('Trial Ends: ${site['trial_end_date']?.toString().split('T')[0] ?? '-'}'),
+              const SizedBox(height: 8),
+            ],
+            if (site['subscription_start_date'] != null) ...[
+              Text('Subscription Starts: ${site['subscription_start_date'].toString().split('T')[0]}'),
+              Text('Expires: ${site['subscription_end_date']?.toString().split('T')[0] ?? '-'}', style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.danger)),
+            ],
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
 
 
 

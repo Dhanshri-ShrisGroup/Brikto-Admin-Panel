@@ -1,6 +1,9 @@
+import 'package:brikto_admin_panel/app/app_router.dart';
 import 'package:flutter/material.dart';
+import 'package:brikto_admin_panel/main.dart'; // import prefs
 import '../constants/colors.dart';
 import '../constants/sizes.dart';
+import '../utils/responsive.dart';
 
 class Navbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -14,6 +17,8 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = Responsive.isMobile(context);
+
     return AppBar(
       backgroundColor: AppColors.primary,
       elevation: 1,
@@ -30,9 +35,10 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
 
       title: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
+          fontSize: isMobile ? 18 : 22,
         ),
       ),
 
@@ -40,7 +46,8 @@ class Navbar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.logout, color: Colors.white),
           onPressed: () {
-            Navigator.pushReplacementNamed(context, '/login');
+            prefs.setBool('isLoggedIn', false);
+            Navigator.pushReplacementNamed(context, AppRouter.login);
           },
         ),
       ],

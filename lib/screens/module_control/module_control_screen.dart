@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/widgets/sidebar.dart';
 import '../../core/widgets/navbar.dart';
+import '../../core/utils/responsive.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -78,15 +79,17 @@ class _ModuleControlPageState extends State<ModuleControlPage> {
 
   @override
   Widget build(BuildContext context) {
+    final mobile = Responsive.isMobile(context);
     return Scaffold(
       backgroundColor: Colors.grey[100],
+      drawer: mobile ? const Sidebar() : null,
+      appBar: Navbar(title: 'Module Control', showMenu: mobile),
       body: Row(
         children: [
-          const Sidebar(),
+          if (!mobile) const Sidebar(),
           Expanded(
             child: Column(
               children: [
-                const Navbar(title: 'Module Control'),
                 Expanded(
                   child: loading
                       ? const Center(child: CircularProgressIndicator())
